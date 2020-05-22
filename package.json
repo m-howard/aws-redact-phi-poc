@@ -1,0 +1,14 @@
+{
+  "name": "textract-poc",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-cf-vars": "^0.3.2",
+    "serverless-deployment-bucket": "^1.1.2",
+    "serverless-dotenv-plugin": "^2.4.2",
+    "serverless-python-requirements": "^5.1.0",
+    "serverless-s3-remover": "^0.6.0",
+    "serverless-step-functions": "^2.19.0"
+  }
+}

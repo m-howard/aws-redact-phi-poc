@@ -1,0 +1,6 @@
+boto3
+Pillow
+textract-trp
+docx2pdf
+PyPDF2
+pdf2image

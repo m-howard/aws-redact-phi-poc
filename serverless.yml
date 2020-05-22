@@ -1,0 +1,135 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: aws-redact-phi-poc
+app: aws-redact-phi-poc-app
+frameworkVersion: "=1.71.3"
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-west-2'}
+  runtime: python3.7
+  stage: ${opt:stage, 'dev'}
+  timeout: 10
+  versionFunctions: false
+  iamManagedPolicies:
+    - 'arn:aws:iam::aws:policy/AmazonTextractFullAccess'
+    - 'arn:aws:iam::aws:policy/ComprehendMedicalFullAccess'
+    - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+  s3:
+    text_identify:
+      name: ${env:DOCUMENTS_BUCKET, 'aws-redact-phi-poc-documents'}
+      publicAccessBlockConfiguration: true
+      blockPublicPolicy: true
+      bucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+# packaging information here
+package:
+  exclude:
+    - package.json
+    - package-lock.json
+    - node_modules/**
+
+# service lambda functions
+functions:
+  redactPhi:
+    handler: src/redact_phi.main
+    events:
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: staging/
+            - suffix: .jpg
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: staging/
+            - suffix: .jpeg
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: staging/
+            - suffix: .png
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: staging/
+            - suffix: .pdf
+  stageDocx:
+    handler: src/redact_phi.main
+    events:
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .docx
+  stagePdfs:
+    handler: src/stage_pdf_files.main
+    events:
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .pdf
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .PDF
+  stageImgs:
+    handler: src/stage_img_files.main
+    events:
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .jpg
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .jpeg
+      - s3:
+          bucket: ${env:DOCUMENTS_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: raw/
+            - suffix: .png
+
+# plugins are added here
+plugins:
+  - serverless-cf-vars
+  - serverless-deployment-bucket
+  - serverless-s3-remover
+  - serverless-step-functions
+  - serverless-dotenv-plugin
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+  remover:
+    buckets:
+      - ${env:DOCUMENTS_BUCKET}
