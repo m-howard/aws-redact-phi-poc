@@ -9,6 +9,6 @@
     "serverless-dotenv-plugin": "^2.4.2",
     "serverless-python-requirements": "^5.1.0",
     "serverless-s3-remover": "^0.6.0",
-    "serverless-step-functions": "^2.19.0"
+    "serverless-step-functions": "^2.32.0"
   }
 }
